@@ -1,7 +1,7 @@
 # prompush
 Pushing data to Prometheus remote writes from Kafka 
 
-I can probably also describe this project as shoving Kakfa in between  Prometheus and a remote storage system.
+I can probably also describe this project as shoving Kafka in between  Prometheus and a remote storage system.
 
 ## Getting Started
 * Start the docker-compose of the test services
