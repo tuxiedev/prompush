@@ -1,18 +1,5 @@
 version: "3"
 services:
-  avalanche:
-    image: quay.io/freshtracks.io/avalanche
-    command:
-      - 
-  prometheus:
-    image: prometheus/prometheus:${PROMETHEUS_VERSION}
-    command:
-      - '--config.file=/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/data'
-    ports:
-      - 9090:9090
-    volumes:
-    - ./etc/prometheus.yml:/prometheus/prometheus.yml
   zookeeper:
     image: bitnami/zookeeper:${ZOOKEEPER_VERSION}
     ports:

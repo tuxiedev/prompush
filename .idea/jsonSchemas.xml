@@ -14,6 +14,9 @@
                   <Item>
                     <option name="path" value="test-services.docker-compose.yml" />
                   </Item>
+                  <Item>
+                    <option name="path" value="bytehoops/test-services.yml" />
+                  </Item>
                 </list>
               </option>
             </SchemaInfo>

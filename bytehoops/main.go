@@ -52,20 +52,22 @@ func setupRouter(producer sarama.SyncProducer, topic string) *gin.Engine {
 func instantiateKafkaProducer() sarama.SyncProducer {
 	brokerList := []string{"localhost:9092"}
 	config := sarama.NewConfig()
+	config.Producer.Return.Successes = true
 	producer, err := sarama.NewSyncProducer(brokerList, config)
 	if err != nil {
-		log.Fatalln("Cannot instantiate Kafka producer")
+		log.Fatalln("Cannot instantiate Kafka producer", err)
 	}
 	return producer
 }
 
 func setupApp() *gin.Engine {
 	producer := instantiateKafkaProducer()
-	topic := "test"
+	topic := "prometheus"
 	return setupRouter(producer, topic)
 }
 
 type AppConfig struct {
+	// TODO Allow ability to configure various components of the app
 }
 
 func main() {

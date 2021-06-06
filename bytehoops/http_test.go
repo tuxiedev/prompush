@@ -18,3 +18,6 @@ func TestPingRoute(t *testing.T) {
 
 	assert.Equal(t, 200, w.Code)
 }
+
+// TODO Add test with headers and consume data from kafka to verify receipt
+// TODO Add test without headers and consume data from kafka to verify receipt
