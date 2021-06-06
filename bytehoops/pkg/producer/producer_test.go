@@ -1,4 +1,4 @@
-package main
+package producer
 
 import (
 	"bytes"
@@ -9,8 +9,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPingRoute(t *testing.T) {
-	router := setupApp()
+func TestProducer(t *testing.T) {
+	testProducerConfig := Config{
+		BootstrapBrokers: []string{"localhost:9092"},
+		Topic:            "prometheus",
+		ListenAddress:    ":8080",
+	}
+	router := setupApp(testProducerConfig)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/v1/write", bytes.NewBufferString("hello world"))

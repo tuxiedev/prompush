@@ -1,4 +1,4 @@
-package main
+package consumer
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"github.com/gojek/heimdall/v7"
 	"github.com/gojek/heimdall/v7/httpclient"
 	"github.com/gojek/heimdall/v7/plugins"
-	"github.com/hashicorp/go-uuid"
 	"log"
 	"os"
 	"os/signal"
@@ -34,21 +33,18 @@ func createHttpClient() *httpclient.Client {
 	)
 }
 
-func main() {
+func RunConsumer(config Config) {
 	client := createHttpClient()
 	requestLogger := plugins.NewRequestLogger(nil, nil)
 	client.AddPlugin(requestLogger)
 	consumer := Consumer{
 		ready:      make(chan bool),
 		httpClient: *client,
-		ingestUrl:  "http://localhost:9009/api/v1/push",
+		ingestUrl:  config.SinkEndpoint,
 	}
-	config := sarama.NewConfig()
-	brokers := []string{"localhost:9092"}
-	topics := []string{"prometheus"}
-	group, _ := uuid.GenerateUUID()
+	saramaConfig := sarama.NewConfig()
 	ctx, cancel := context.WithCancel(context.Background())
-	consumerClient, err := sarama.NewConsumerGroup(brokers, group, config)
+	consumerClient, err := sarama.NewConsumerGroup(config.BootstrapBrokers, config.ConsumerGroupName, saramaConfig)
 	if err != nil {
 		log.Panicf("Error creating consumer group client: %v", err)
 	}
@@ -60,7 +56,7 @@ func main() {
 			// `Consume` should be called inside an infinite loop, when a
 			// server-side rebalance happens, the consumer session will need to be
 			// recreated to get the new claims
-			if err := consumerClient.Consume(ctx, topics, &consumer); err != nil {
+			if err := consumerClient.Consume(ctx, []string{config.Topic}, &consumer); err != nil {
 				log.Panicf("Error from consumer: %v", err)
 			}
 			// check if context was cancelled, signaling that the consumer should stop

@@ -16,7 +16,7 @@ docker:
 
 test:
 	docker-compose -f test-services.yml up -d
-	go test
+	go test ./...
 	docker-compose -f test-services.yml down
 clean:
 	docker-compose -f test-services.yml down
