@@ -1,0 +1,41 @@
+version: "3"
+services:
+  avalanche:
+    image: quay.io/freshtracks.io/avalanche
+    command:
+      - 
+  prometheus:
+    image: prometheus/prometheus:${PROMETHEUS_VERSION}
+    command:
+      - '--config.file=/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/data'
+    ports:
+      - 9090:9090
+    volumes:
+    - ./etc/prometheus.yml:/prometheus/prometheus.yml
+  zookeeper:
+    image: bitnami/zookeeper:${ZOOKEEPER_VERSION}
+    ports:
+      - '2181:2181'
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+  kafka:
+    image: bitnami/kafka:${KAFKA_VERSION}
+    ports:
+      - '9092:9092'
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://127.0.0.1:9092
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    depends_on:
+      - zookeeper
+  cortex:
+    image: quay.io/cortexproject/cortex:${CORTEX_VERSION}
+    ports:
+      - 9009:9009
+    volumes:
+      - ./etc/cortex.yml:/etc/cortex.yml
+    command:
+      - -config.file=/etc/cortex.yml
