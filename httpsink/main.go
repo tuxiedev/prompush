@@ -5,6 +5,7 @@ import (
 	"github.com/Shopify/sarama"
 	"github.com/gojek/heimdall/v7"
 	"github.com/gojek/heimdall/v7/httpclient"
+	"github.com/gojek/heimdall/v7/plugins"
 	"github.com/hashicorp/go-uuid"
 	"log"
 	"os"
@@ -35,6 +36,8 @@ func createHttpClient() *httpclient.Client {
 
 func main() {
 	client := createHttpClient()
+	requestLogger := plugins.NewRequestLogger(nil, nil)
+	client.AddPlugin(requestLogger)
 	consumer := Consumer{
 		ready:      make(chan bool),
 		httpClient: *client,
