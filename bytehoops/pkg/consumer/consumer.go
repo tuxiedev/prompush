@@ -15,11 +15,12 @@ import (
 )
 
 func createHttpClient() *httpclient.Client {
-	backoffInterval := 2 * time.Millisecond
+	initialInterval := 2 * time.Second
+	maxTimeout := 120 * time.Second
 	// Define a maximum jitter interval. It must be more than 1*time.Millisecond
-	maximumJitterInterval := 5 * time.Millisecond
+	maximumJitterInterval := 5 * time.Second
 
-	backoff := heimdall.NewConstantBackoff(backoffInterval, maximumJitterInterval)
+	backoff := heimdall.NewExponentialBackoff(initialInterval, maxTimeout, 2, maximumJitterInterval)
 
 	// Create a new retry mechanism with the backoff
 	retrier := heimdall.NewRetrier(backoff)

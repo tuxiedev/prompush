@@ -2,11 +2,16 @@ package consumer
 
 import (
 	"bytes"
+	"errors"
 	"github.com/Shopify/sarama"
+	"github.com/avast/retry-go"
 	"github.com/gojek/heimdall/v7/httpclient"
 	"log"
 	"strings"
+	"time"
 )
+
+var tooManyRequests = errors.New("Retriable error due to too many requests")
 
 type Consumer struct {
 	ready      chan bool
@@ -31,17 +36,35 @@ func getHttpHeaderFromKafkaHeaders(kafkaHeaders []*sarama.RecordHeader) map[stri
 	return returnMap
 }
 
+func (consumer *Consumer) processMessage(message *sarama.ConsumerMessage, session sarama.ConsumerGroupSession) {
+	headers := getHttpHeaderFromKafkaHeaders(message.Headers)
+	retry.Do(
+		func() error {
+			resp, err := consumer.httpClient.Post(consumer.ingestUrl, bytes.NewBuffer(message.Value), headers)
+			if err != nil {
+				log.Println("Error with request", err)
+			}
+			if resp.StatusCode == 429 || resp.StatusCode == 500 {
+				log.Println("Too many requests error occured, retrying")
+				return tooManyRequests
+			}
+			return nil
+		},
+		retry.DelayType(func(n uint, err error, config *retry.Config) time.Duration {
+			if err == tooManyRequests {
+				log.Println("Retrying after backoff on too many requests")
+				return retry.BackOffDelay(n, err, config)
+			} else {
+				return retry.DefaultDelay
+			}
+		}),
+	)
+	session.MarkMessage(message, "")
+}
+
 func (consumer *Consumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for message := range claim.Messages() {
-		headers := getHttpHeaderFromKafkaHeaders(message.Headers)
-		_, err := consumer.httpClient.Post(consumer.ingestUrl, bytes.NewBuffer(message.Value), headers)
-		if err != nil {
-			log.Println("Error with request", err)
-		}
-		//TODO deal with errors:
-		// Note: 429 error occurs when ingest rate limit exceeds
-		session.MarkMessage(message, "")
+		consumer.processMessage(message, session)
 	}
-
 	return nil
 }

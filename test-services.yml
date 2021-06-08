@@ -6,6 +6,9 @@ services:
       - '2181:2181'
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
+      - ZOO_4LW_COMMANDS_WHITELIST=ruok
+    healthcheck:
+      test: echo 'ruok' | nc localhost 2181 | grep imok
   kafka:
     image: bitnami/kafka:${KAFKA_VERSION}
     ports:
@@ -17,7 +20,8 @@ services:
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
       - ALLOW_PLAINTEXT_LISTENER=yes
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
   cortex:
     image: quay.io/cortexproject/cortex:${CORTEX_VERSION}
     ports:
