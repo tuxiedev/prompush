@@ -26,6 +26,7 @@ func Execute() {
 }
 
 func init() {
+	// TODO take all kafka configs from a file instead as there are too many
 	rootCmd.PersistentFlags().StringSliceVarP(&bootstrapBrokers, "bootstrap-servers", "b", []string{"localhost:9092"}, "Comma separated list of bootstrap servers")
 	rootCmd.PersistentFlags().StringVarP(&topic, "topic", "t", "prometheus", "Topic to consume or send data to")
 }
