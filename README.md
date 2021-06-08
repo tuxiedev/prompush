@@ -1,25 +1,21 @@
 # prompush
 Pushing data to Prometheus remote writes from Kafka 
 
-I can probably also describe this project as shoving Kafka in between  Prometheus and a remote storage system.
+### Goal
+To demonstrate how one can use Kafka as an intermediate buffer between Prometheus and a remote storage backend.
 
-## Getting Started
+### Components Used
+* [Bytehoops](https://github.com/tuxiedev/bytehoops) - An application that transfers bytes received on an HTTP endpoint and forwards it to Kafka. Conversely, it can also be run to consumer from Kafka and write the message to an API endpoint. In these operations, the HTTP Request Headers and Kafka Message Headers are retained
+* [Apache Kafka](https://kafka.apache.org) - A high throughput messaging queue
+* [Cortex](https://cortexmetrics.io) - One of the most popular remote storage and querying backends for Prometheus.
+* [Avalanche](https://github.com/open-fresh/avalanche) - A load testing tool to analyse loads on a Prometheus server and remote storage backends.
+
+### Running the experiment
 * Start the docker-compose of the test services
     ```sh
-    docker-compose -f test-services.yml up -d
+    docker-compose up -d
     ```
-* Build bytehoops, the Kafka proxy that will a Prometheus server will `remote_write` to
-    ```shell
-    cd bytehoops
-    go build
-    ```
-* Run two instances of bytehoops, a producer and a consumer in different terminal windows
-  ```shell
-  ./bytehoops producer
-  ```
-  ```shell
-  ./bytehoops consumer
-  ```
+
 * Start [avalance](https://github.com/open-fresh/avalanche) a load testing tool for Prometheus remote write
     ```shell
      docker run quay.io/freshtracks.io/avalanche --remote-url http://host.docker.internal:8080/v1/write
